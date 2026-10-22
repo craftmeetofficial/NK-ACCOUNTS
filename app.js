@@ -59,9 +59,34 @@ function formatPrice(price) {
   return "LKR " + Number(price).toLocaleString("en-LK");
 }
 
+/* ===== CATEGORY FILTER SETUP ===== */
+function setupCategories() {
+  if (!categoriesGrid) return;
+  const categories = ["all", ...new Set(listings.map(item => item.category).filter(Boolean))];
+  
+  categoriesGrid.innerHTML = categories.map(cat => `
+    <button class="category-btn ${cat === currentCategory ? 'active' : ''}" data-category="${cat}">
+      ${cat.toUpperCase()}
+    </button>
+  `).join('');
+}
+
+if (categoriesGrid) {
+  categoriesGrid.addEventListener("click", (e) => {
+    const btn = e.target.closest(".category-btn");
+    if (!btn) return;
+
+    document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCategory = btn.dataset.category;
+    renderListings();
+  });
+}
+
 function getFilteredListings() {
   let result = [...listings];
 
+  // තෝරාගත් Category එකට පමණක් ලිස්ටිං සීමා කිරීම
   if (currentCategory !== "all") {
     result = result.filter(l => l.category && l.category.toLowerCase() === currentCategory.toLowerCase());
   }
@@ -132,27 +157,6 @@ function renderListings() {
   }).join("");
 
   observeReveals();
-}
-
-/* ===== CATEGORY FILTER SETUP ===== */
-function setupCategories() {
-  if (!categoriesGrid) return;
-  const categories = ["all", ...new Set(listings.map(item => item.category).filter(Boolean))];
-  categoriesGrid.innerHTML = categories.map(cat => 
-    `<button class="category-btn ${cat === currentCategory ? 'active' : ''}" data-category="${cat}">${cat.toUpperCase()}</button>`
-  ).join('');
-}
-
-if (categoriesGrid) {
-  categoriesGrid.addEventListener("click", (e) => {
-    const btn = e.target.closest(".category-btn");
-    if (!btn) return;
-
-    document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCategory = btn.dataset.category;
-    renderListings();
-  });
 }
 
 /* ===== SEARCH ===== */
