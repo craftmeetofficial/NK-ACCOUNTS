@@ -81,7 +81,7 @@
       <h2 class="section-title">Product Categories</h2>
       <p class="section-subtitle">Filter by the type of digital product you need</p>
       <div class="categories-grid" id="categoriesGrid">
-        <button class="category-btn active" data-category="eBay">eBay</button>
+        <button class="category-btn active" data-category="all">All</button>
       </div>
     </div>
   </section>
@@ -90,9 +90,9 @@
   <section class="marketplace-section" id="marketplace">
     <div class="container">
       <h2 class="section-title">Browse Marketplace Listings</h2>
-      <p class="section-subtitle">Premium digital accounts & services — demo listings only</p>
+      <p class="section-subtitle">Premium digital accounts & services</p>
       <div class="listings-grid" id="listingsGrid">
-        <!-- Cards injected by JS -->
+        <p style="color: #8a8a9e; grid-column: 1/-1; text-align: center;">Loading listings...</p>
       </div>
       <p class="no-results" id="noResults" hidden>No listings match your search or filters.</p>
     </div>
@@ -169,6 +169,128 @@
   <!-- Wishlist Toast -->
   <div class="toast" id="toast" hidden></div>
 
-  <script src="app.js"></script>
+  <!-- Firebase Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
+      authDomain: "nk-accounts.firebaseapp.com",
+      databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
+      projectId: "nk-accounts",
+      storageBucket: "nk-accounts.firebasestorage.app",
+      messagingSenderId: "647793698356",
+      appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
+      measurementId: "G-BKPP3B4LVB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    let rawListings = [];
+    let selectedCategory = "all";
+
+    const listingsGrid = document.getElementById("listingsGrid");
+    const categoriesGrid = document.getElementById("categoriesGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortSelect = document.getElementById("sortSelect");
+    const noResults = document.getElementById("noResults");
+    const hamburger = document.getElementById("hamburger");
+    const navLinks = document.getElementById("navLinks");
+
+    // Hamburger Menu
+    if (hamburger && navLinks) {
+      hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("open");
+        navLinks.classList.toggle("open");
+      });
+    }
+
+    // Fetch listings from Firebase
+    const listingsRef = ref(database, 'listings');
+    onValue(listingsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) {
+        rawListings = [];
+      } else {
+        rawListings = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      }
+      setupCategories();
+      renderListings();
+    });
+
+    // Categories setup
+    function setupCategories() {
+      const categories = ["all", ...new Set(rawListings.map(item => item.category).filter(Boolean))];
+      categoriesGrid.innerHTML = categories.map(cat => 
+        `<button class="category-btn ${cat === selectedCategory ? 'active' : ''}" data-category="${cat}">${cat.toUpperCase()}</button>`
+      ).join('');
+
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedCategory = btn.getAttribute('data-category');
+          renderListings();
+        });
+      });
+    }
+
+    // Render & Filter Listings
+    function renderListings() {
+      let filtered = [...rawListings];
+
+      // Category Filter
+      if (selectedCategory !== "all") {
+        filtered = filtered.filter(item => item.category === selectedCategory);
+      }
+
+      // Search Filter
+      const searchVal = searchInput.value.toLowerCase().trim();
+      if (searchVal) {
+        filtered = filtered.filter(item => 
+          (item.title && item.title.toLowerCase().includes(searchVal)) ||
+          (item.category && item.category.toLowerCase().includes(searchVal)) ||
+          (item.refId && item.refId.toLowerCase().includes(searchVal)) ||
+          (item.description && item.description.toLowerCase().includes(searchVal))
+        );
+      }
+
+      // Sort
+      const sortVal = sortSelect.value;
+      if (sortVal === "price-asc") filtered.sort((a, b) => Number(a.price) - Number(b.price));
+      if (sortVal === "price-desc") filtered.sort((a, b) => Number(b.price) - Number(a.price));
+      if (sortVal === "title-asc") filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      if (sortVal === "title-desc") filtered.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+
+      // DOM Display
+      if (filtered.length === 0) {
+        listingsGrid.innerHTML = "";
+        noResults.hidden = false;
+      } else {
+        noResults.hidden = true;
+        listingsGrid.innerHTML = filtered.map(item => `
+          <div class="card listing-card" style="background:#12121a; border:1px solid #1f1f2e; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span class="badge" style="background:#1a1a26; color:#00f2fe; padding:4px 8px; border-radius:4px; font-size:0.8rem;">${item.category || 'Digital'}</span>
+                <span style="color:#8a8a9e; font-size:0.85rem;">${item.refId || ''}</span>
+              </div>
+              <h3 style="color:#fff; font-size:1.2rem; margin-bottom:8px;">${item.title}</h3>
+              <p style="color:#a0a0b2; font-size:0.9rem; margin-bottom:15px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${item.description}</p>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top:1px solid #1f1f2e; padding-top:10px;">
+              <div style="font-size:1.3rem; font-weight:700; color:#00f2fe;">$${item.price}</div>
+              <a href="contact.html?ref=${item.refId || ''}" class="btn btn-primary" style="padding:6px 16px; text-decoration:none;">Inquire</a>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    searchInput.addEventListener("input", renderListings);
+    sortSelect.addEventListener("change", renderListings);
+  </script>
 </body>
 </html>
