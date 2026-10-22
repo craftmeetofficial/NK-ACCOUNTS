@@ -4,10 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About Us — NK ACCOUNTS</title>
+  <meta name="description" content="NK ACCOUNTS — About Us">
+  <!-- Neon Cyan NK Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2312121a%22/><text x=%2250%22 y=%2272%22 font-size=%2250%22 fill=%22%2300f2fe%22 font-family=%22sans-serif%22 font-weight=%22bold%22 text-anchor=%22middle%22 style=%22filter:drop-shadow(0 0 6px %2300f2fe);%22>NK</text></svg>">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .nav-auth-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 15px;
+    }
+    .user-status {
+      color: #00f2fe;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
   <!-- Navigation -->
@@ -24,6 +40,12 @@
         <a href="index.html#how-it-works" class="nav-link">How It Works</a>
         <a href="about.html" class="nav-link active">About Us</a>
         <a href="contact.html" class="nav-link">Contact</a>
+
+        <!-- Dynamic Auth Buttons -->
+        <div class="nav-auth-container" id="navAuthContainer">
+          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+        </div>
       </nav>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span>
@@ -87,12 +109,47 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2025 NK ACCOUNTS. All rights reserved. Demo listings only — no real credentials shown.</p>
+      <p>&copy; 2026 NK ACCOUNTS. All rights reserved. Safe, Secure & Reliable Digital Marketplace.</p>
     </div>
   </footer>
 
-  <script>
-    // Simple Hamburger Menu for standalone page
+  <!-- Firebase Script for Navigation Auth state -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
+      authDomain: "nk-accounts.firebaseapp.com",
+      databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
+      projectId: "nk-accounts",
+      storageBucket: "nk-accounts.firebasestorage.app",
+      messagingSenderId: "647793698356",
+      appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
+      measurementId: "G-BKPP3B4LVB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const navAuthContainer = document.getElementById("navAuthContainer");
+
+    // Dynamic Auth State Check
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navAuthContainer.innerHTML = `
+          <span class="user-status">${user.email.split('@')[0]}</span>
+          <button id="navLogoutBtn" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;">Logout</button>
+        `;
+        document.getElementById("navLogoutBtn").addEventListener("click", () => signOut(auth));
+      } else {
+        navAuthContainer.innerHTML = `
+          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+        `;
+      }
+    });
+
+    // Mobile Hamburger Menu
     const hamburger = document.getElementById("hamburger");
     const navLinks = document.getElementById("navLinks");
     if(hamburger && navLinks) {
