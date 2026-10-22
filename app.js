@@ -372,7 +372,7 @@ if (contactForm) {
       if (document.getElementById("subjectError")) {
         document.getElementById("subjectError").textContent = "Please enter a subject (at least 3 characters).";
       }
-      valid = false;
+      valid = false.Page = false;
     }
 
     if (message && (!message.value.trim() || message.value.trim().length < 10)) {
