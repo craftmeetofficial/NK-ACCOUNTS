@@ -59,35 +59,20 @@ function formatPrice(price) {
   return "LKR " + Number(price).toLocaleString("en-LK");
 }
 
-/* ===== CATEGORY FILTER SETUP (Only 'ALL') ===== */
+/* ===== CATEGORY FILTER SETUP (Only 'ALL' Tab) ===== */
 function setupCategories() {
   if (!categoriesGrid) return;
   categoriesGrid.innerHTML = `
-    <button class="category-btn ${currentCategory === 'all' ? 'active' : ''}" data-category="all">
+    <button class="category-btn active" data-category="all">
       ALL
     </button>
   `;
 }
 
-if (categoriesGrid) {
-  categoriesGrid.addEventListener("click", (e) => {
-    const btn = e.target.closest(".category-btn");
-    if (!btn) return;
-
-    document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCategory = btn.dataset.category;
-    renderListings();
-  });
-}
-
 function getFilteredListings() {
   let result = [...listings];
 
-  if (currentCategory !== "all") {
-    result = result.filter(l => l.category && l.category.toLowerCase() === currentCategory.toLowerCase());
-  }
-
+  // Search filter
   if (currentSearch.trim()) {
     const q = currentSearch.toLowerCase().trim();
     result = result.filter(l =>
@@ -98,6 +83,7 @@ function getFilteredListings() {
     );
   }
 
+  // Sorting
   switch (currentSort) {
     case "price-asc":
       result.sort((a, b) => Number(a.price) - Number(b.price));
