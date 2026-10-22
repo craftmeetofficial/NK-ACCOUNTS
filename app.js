@@ -220,21 +220,18 @@ function showToast(message, isWishlist = false) {
   }, 2200);
 }
 
-/* ===== MODAL ===== */
+/* ===== MODAL (Full Details Popup) ===== */
 function openModal(id) {
   const item = listings.find(l => l.id === id);
   if (!item) return;
 
   modalBody.innerHTML = `
-    <div class="modal-image">🛍️</div>
-    <p class="modal-category">${item.category || 'Digital'}</p>
-    <h2 class="modal-title">${item.title}</h2>
-    <p class="modal-price">${formatPrice(item.price)}</p>
-    <p class="modal-desc">${item.description}</p>
-    <p class="modal-ref">Reference: <span>${item.refId || ''}</span></p>
-    <p class="modal-desc" style="font-size:0.85rem;opacity:0.8;">
-      Contact us through the contact form referencing <strong>${item.refId || ''}</strong> to proceed.
-    </p>
+    <div style="font-size: 2.2rem; text-align: center; margin-bottom: 10px;">🛍️</div>
+    <p style="color: #00f2fe; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;">${item.category || 'Digital'}</p>
+    <h2 style="color: #fff; font-size: 1.4rem; margin-bottom: 10px;">${item.title}</h2>
+    <p style="color: #00f2fe; font-size: 1.3rem; font-weight: 700; margin-bottom: 15px;">${formatPrice(item.price)}</p>
+    <p style="color: #d1d1e0; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">${item.description}</p>
+    <p style="color: #8a8a9e; font-size: 0.85rem; margin-bottom: 20px;">Reference ID: <strong style="color: #fff;">${item.refId || ''}</strong></p>
     <button class="btn btn-primary btn-full" onclick="window.location.href='contact.html?ref=${item.refId || ''}'">
       Inquire About This Listing
     </button>
