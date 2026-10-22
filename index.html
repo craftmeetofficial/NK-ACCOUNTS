@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NK ACCOUNTS — Premium Digital Marketplace</title>
+  <meta name="description" content="NK ACCOUNTS — Discover digital marketplace listings through a clean, modern, and premium browsing experience.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#home" class="logo">
+        <span class="logo-nk">NK</span>
+        <span class="logo-accounts">ACCOUNTS</span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#home" class="nav-link">Home</a>
+        <a href="#marketplace" class="nav-link">Browse Listings</a>
+        <a href="#categories" class="nav-link">Categories</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#about" class="nav-link">About Us</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <p class="hero-brand">NK ACCOUNTS</p>
+      <h1 class="hero-title">YOUR NEXT ACCOUNT.<br>YOUR NEXT LEVEL.</h1>
+      <p class="hero-desc">Discover digital marketplace listings through a clean, modern, and premium browsing experience.</p>
+      <div class="hero-buttons">
+        <a href="#marketplace" class="btn btn-primary">BROWSE LISTINGS</a>
+        <a href="#about" class="btn btn-outline">ABOUT US</a>
+      </div>
+      <div class="hero-team">
+        <div class="team-item">
+          <span class="team-role">Website Creator</span>
+          <span class="team-name">Kaveesha Shehara</span>
+        </div>
+        <div class="team-divider"></div>
+        <div class="team-item">
+          <span class="team-role">Account Manager</span>
+          <span class="team-name">Navod Akalanka</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search & Filter -->
+  <section class="search-section" id="search">
+    <div class="container">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search listings by title, category or reference..." aria-label="Search listings">
+        <select id="sortSelect" aria-label="Sort listings">
+          <option value="default">Sort by: Default</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="title-asc">Title: A–Z</option>
+          <option value="title-desc">Title: Z–A</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories-section" id="categories">
+    <div class="container">
+      <h2 class="section-title">Product Categories</h2>
+      <p class="section-subtitle">Filter by the type of digital product you need</p>
+      <div class="categories-grid" id="categoriesGrid">
+        <button class="category-btn active" data-category="all">All Listings</button>
+        <button class="category-btn" data-category="Gaming">Gaming</button>
+        <button class="category-btn" data-category="Streaming">Streaming</button>
+        <button class="category-btn" data-category="Software">Software</button>
+        <button class="category-btn" data-category="Social">Social Media</button>
+        <button class="category-btn" data-category="Productivity">Productivity</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace / Featured Listings -->
+  <section class="marketplace-section" id="marketplace">
+    <div class="container">
+      <h2 class="section-title">Browse Marketplace Listings</h2>
+      <p class="section-subtitle">Premium digital accounts & services — demo listings only</p>
+      <div class="listings-grid" id="listingsGrid">
+        <!-- Cards injected by JS -->
+      </div>
+      <p class="no-results" id="noResults" hidden>No listings match your search or filters.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-section" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Simple, secure, and straightforward</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <h3>Browse Listings</h3>
+          <p>Explore our curated marketplace of digital products. Use search and category filters to find exactly what you need.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <h3>Select & Wishlist</h3>
+          <p>Save interesting listings to your wishlist. View full details in a clean modal before deciding.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <h3>Contact & Purchase</h3>
+          <p>Reach out through the contact form. Our Account Manager will guide you through a secure transaction.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">04</div>
+          <h3>Receive Access</h3>
+          <p>Once confirmed, you receive delivery details. All demo listings here contain no real credentials.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Us -->
+  <section class="about-section" id="about">
+    <div class="container">
+      <h2 class="section-title">About Us</h2>
+      <p class="section-subtitle">The team behind NK ACCOUNTS</p>
+      <div class="about-grid">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <span>KS</span>
+          </div>
+          <h3>Kaveesha Shehara</h3>
+          <p class="profile-role">Website Creator</p>
+          <p class="profile-bio">Designer and developer focused on building clean, high-performance digital experiences. Responsible for the complete vision, interface, and technical foundation of NK ACCOUNTS.</p>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar accent">
+            <span>NA</span>
+          </div>
+          <h3>Navod Akalanka</h3>
+          <p class="profile-role">Account Manager</p>
+          <p class="profile-bio">Handles client communication, listing quality, and secure delivery. Ensures every transaction is smooth, transparent, and professional from first inquiry to final handover.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact-section" id="contact">
+    <div class="container">
+      <h2 class="section-title">Contact Us</h2>
+      <p class="section-subtitle">Have a question or ready to purchase? Send a message.</p>
+      <form class="contact-form" id="contactForm" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="Your name" autocomplete="name">
+            <span class="error-msg" id="nameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+            <span class="error-msg" id="emailError"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" required placeholder="e.g. Inquiry about listing NK-0042">
+          <span class="error-msg" id="subjectError"></span>
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" required placeholder="Tell us what you need..."></textarea>
+          <span class="error-msg" id="messageError"></span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+        <div class="form-feedback" id="formFeedback" hidden></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <a href="#home" class="logo">
+          <span class="logo-nk">NK</span>
+          <span class="logo-accounts">ACCOUNTS</span>
+        </a>
+        <p>Premium digital marketplace experience.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigate</h4>
+        <a href="#home">Home</a>
+        <a href="#marketplace">Browse Listings</a>
+        <a href="#categories">Categories</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About Us</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-team">
+        <h4>Team</h4>
+        <p>Creator: Kaveesha Shehara</p>
+        <p>Manager: Navod Akalanka</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 NK ACCOUNTS. All rights reserved. Demo listings only — no real credentials shown.</p>
+    </div>
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Wishlist Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
