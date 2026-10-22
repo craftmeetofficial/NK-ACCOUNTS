@@ -1,321 +1,405 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NK ACCOUNTS — Premium Digital Marketplace</title>
-  <meta name="description" content="NK ACCOUNTS — Discover digital marketplace listings through a clean, modern, and premium browsing experience.">
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    .nav-auth-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-left: 15px;
-    }
-    .user-status {
-      color: #00f2fe;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-  </style>
-</head>
-<body>
-  <!-- Navigation -->
-  <header class="navbar" id="navbar">
-    <div class="nav-container">
-      <a href="index.html#home" class="logo">
-        <span class="logo-nk">NK</span>
-        <span class="logo-accounts">ACCOUNTS</span>
-      </a>
-      <nav class="nav-links" id="navLinks">
-        <a href="#home" class="nav-link active">Home</a>
-        <a href="#marketplace" class="nav-link">Browse Listings</a>
-        <a href="#categories" class="nav-link">Categories</a>
-        <a href="#how-it-works" class="nav-link">How It Works</a>
-        <a href="about.html" class="nav-link">About Us</a>
-        <a href="contact.html" class="nav-link">Contact</a>
-        
-        <!-- Dynamic Auth Buttons -->
-        <div class="nav-auth-container" id="navAuthContainer">
-          <!-- Default (Logged Out) Buttons -->
-          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
-          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+/* ===== FIREBASE SETUP & LISTINGS ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
+  authDomain: "nk-accounts.firebaseapp.com",
+  databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
+  projectId: "nk-accounts",
+  storageBucket: "nk-accounts.firebasestorage.app",
+  messagingSenderId: "647793698356",
+  appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
+  measurementId: "G-BKPP3B4LVB"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+let listings = [];
+let currentCategory = "all";
+let currentSearch = "";
+let currentSort = "default";
+let wishlist = JSON.parse(localStorage.getItem("nkWishlist") || "[]");
+
+/* ===== DOM REFS ===== */
+const listingsGrid = document.getElementById("listingsGrid");
+const noResults = document.getElementById("noResults");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const categoriesGrid = document.getElementById("categoriesGrid");
+const hamburger = document.getElementById("hamburger");
+const navLinks = document.getElementById("navLinks");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalBody = document.getElementById("modalBody");
+const modalClose = document.getElementById("modalClose");
+const toast = document.getElementById("toast");
+const contactForm = document.getElementById("contactForm");
+const navbar = document.getElementById("navbar");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const navAuthContainer = document.getElementById("navAuthContainer");
+
+/* ===== FETCH LISTINGS FROM FIREBASE ===== */
+const listingsRef = ref(database, 'listings');
+onValue(listingsRef, (snapshot) => {
+  const data = snapshot.val();
+  if (!data) {
+    listings = [];
+  } else {
+    listings = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+  }
+  setupCategories();
+  renderListings();
+});
+
+/* ===== RENDER LISTINGS ===== */
+function formatPrice(price) {
+  return "LKR " + Number(price).toLocaleString("en-LK");
+}
+
+/* ===== CATEGORY FILTER SETUP (Strictly Only 'ALL' Tab) ===== */
+function setupCategories() {
+  if (!categoriesGrid) return;
+  categoriesGrid.innerHTML = `
+    <button class="category-btn active" data-category="all">
+      ALL
+    </button>
+  `;
+}
+
+function getFilteredListings() {
+  let result = [...listings];
+
+  // Search filter
+  if (currentSearch.trim()) {
+    const q = currentSearch.toLowerCase().trim();
+    result = result.filter(l =>
+      (l.title && l.title.toLowerCase().includes(q)) ||
+      (l.category && l.category.toLowerCase().includes(q)) ||
+      (l.refId && l.refId.toLowerCase().includes(q)) ||
+      (l.description && l.description.toLowerCase().includes(q))
+    );
+  }
+
+  // Sorting
+  switch (currentSort) {
+    case "price-asc":
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+      break;
+    case "price-desc":
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+      break;
+    case "title-asc":
+      result.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      break;
+    case "title-desc":
+      result.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+      break;
+  }
+
+  return result;
+}
+
+function renderListings() {
+  const filtered = getFilteredListings();
+
+  if (filtered.length === 0) {
+    listingsGrid.innerHTML = "";
+    noResults.hidden = false;
+    return;
+  }
+
+  noResults.hidden = true;
+  listingsGrid.innerHTML = filtered.map(item => {
+    const inWishlist = wishlist.includes(item.id);
+    return `
+      <article class="listing-card reveal" data-id="${item.id}">
+        <div class="listing-image">
+          <span class="placeholder-icon">🛍️</span>
+          ${item.featured ? '<span class="listing-badge">FEATURED</span>' : ""}
         </div>
-      </nav>
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Hero -->
-  <section class="hero" id="home">
-    <div class="hero-grid"></div>
-    <div class="hero-content">
-      <p class="hero-brand">NK ACCOUNTS</p>
-      <h1 class="hero-title">YOUR NEXT ACCOUNT.<br>YOUR NEXT LEVEL.</h1>
-      <p class="hero-desc">Discover digital marketplace listings through a clean, modern, and premium browsing experience.</p>
-      <div class="hero-buttons">
-        <a href="#marketplace" class="btn btn-primary">BROWSE LISTINGS</a>
-        <a href="about.html" class="btn btn-outline">ABOUT US</a>
-      </div>
-      <div class="hero-team">
-        <div class="team-item">
-          <span class="team-role">Website Creator</span>
-          <span class="team-name">Kaveesha Shehara</span>
-        </div>
-        <div class="team-divider"></div>
-        <div class="team-item">
-          <span class="team-role">Account Manager</span>
-          <span class="team-name">Navod Akalanka</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Search & Filter -->
-  <section class="search-section" id="search">
-    <div class="container">
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search listings by title, category or reference..." aria-label="Search listings">
-        <select id="sortSelect" aria-label="Sort listings">
-          <option value="default">Sort by: Default</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-          <option value="title-asc">Title: A–Z</option>
-          <option value="title-desc">Title: Z–A</option>
-        </select>
-      </div>
-    </div>
-  </section>
-
-  <!-- Categories -->
-  <section class="categories-section" id="categories">
-    <div class="container">
-      <h2 class="section-title">Product Categories</h2>
-      <p class="section-subtitle">Filter by the type of digital product you need</p>
-      <div class="categories-grid" id="categoriesGrid">
-        <button class="category-btn active" data-category="all">ALL</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Marketplace / Featured Listings -->
-  <section class="marketplace-section" id="marketplace">
-    <div class="container">
-      <h2 class="section-title">Browse Marketplace Listings</h2>
-      <p class="section-subtitle">Premium digital accounts & services</p>
-      <div class="listings-grid" id="listingsGrid">
-        <p style="color: #8a8a9e; grid-column: 1/-1; text-align: center;">Loading listings...</p>
-      </div>
-      <p class="no-results" id="noResults" hidden>No listings match your search or filters.</p>
-    </div>
-  </section>
-
-  <!-- How It Works -->
-  <section class="how-section" id="how-it-works">
-    <div class="container">
-      <h2 class="section-title">How It Works</h2>
-      <p class="section-subtitle">Simple, secure, and straightforward</p>
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-number">01</div>
-          <h3>Browse Listings</h3>
-          <p>Explore our curated marketplace of digital products. Use search and category filters to find exactly what you need.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-number">02</div>
-          <h3>Select & Wishlist</h3>
-          <p>Save interesting listings to your wishlist. View full details in a clean modal before deciding.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-number">03</div>
-          <h3>Contact & Purchase</h3>
-          <p>Reach out through the contact form. Our Account Manager will guide you through a secure transaction.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-number">04</div>
-          <h3>Receive Access</h3>
-          <p>Once confirmed, you receive delivery details. All demo listings here contain no real credentials.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer-content">
-      <div class="footer-brand">
-        <a href="#home" class="logo">
-          <span class="logo-nk">NK</span>
-          <span class="logo-accounts">ACCOUNTS</span>
-        </a>
-        <p>Premium digital marketplace experience.</p>
-      </div>
-      <div class="footer-links">
-        <h4>Navigate</h4>
-        <a href="#home">Home</a>
-        <a href="#marketplace">Browse Listings</a>
-        <a href="#categories">Categories</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="about.html">About Us</a>
-        <a href="contact.html">Contact</a>
-      </div>
-      <div class="footer-team">
-        <h4>Team</h4>
-        <p>Creator: Kaveesha Shehara</p>
-        <p>Manager: Navod Akalanka</p>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2025 NK ACCOUNTS. All rights reserved. Demo listings only — no real credentials shown.</p>
-    </div>
-  </footer>
-
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay" hidden>
-    <div class="modal" id="modal">
-      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
-      <div class="modal-body" id="modalBody"></div>
-    </div>
-  </div>
-
-  <!-- Wishlist Toast -->
-  <div class="toast" id="toast" hidden></div>
-
-  <!-- Firebase Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
-      authDomain: "nk-accounts.firebaseapp.com",
-      databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
-      projectId: "nk-accounts",
-      storageBucket: "nk-accounts.firebasestorage.app",
-      messagingSenderId: "647793698356",
-      appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
-      measurementId: "G-BKPP3B4LVB"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
-
-    let rawListings = [];
-    let selectedCategory = "all";
-
-    const listingsGrid = document.getElementById("listingsGrid");
-    const categoriesGrid = document.getElementById("categoriesGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortSelect = document.getElementById("sortSelect");
-    const noResults = document.getElementById("noResults");
-    const hamburger = document.getElementById("hamburger");
-    const navLinks = document.getElementById("navLinks");
-    const navAuthContainer = document.getElementById("navAuthContainer");
-
-    // Dynamic Auth State Check for Navbar
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navAuthContainer.innerHTML = `
-          <span class="user-status">${user.email.split('@')[0]}</span>
-          <button id="navLogoutBtn" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;">Logout</button>
-        `;
-        document.getElementById("navLogoutBtn").addEventListener("click", () => signOut(auth));
-      } else {
-        navAuthContainer.innerHTML = `
-          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
-          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
-        `;
-      }
-    });
-
-    // Hamburger Menu
-    if (hamburger && navLinks) {
-      hamburger.addEventListener("click", () => {
-        hamburger.classList.toggle("open");
-        navLinks.classList.toggle("open");
-      });
-    }
-
-    // Fetch listings from Firebase
-    const listingsRef = ref(database, 'listings');
-    onValue(listingsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        rawListings = [];
-      } else {
-        rawListings = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-      }
-      setupCategories();
-      renderListings();
-    });
-
-    // Categories setup - Only 'ALL' button enabled
-    function setupCategories() {
-      if (categoriesGrid) {
-        categoriesGrid.innerHTML = `<button class="category-btn active" data-category="all">ALL</button>`;
-      }
-    }
-
-    // Render & Filter Listings
-    function renderListings() {
-      let filtered = [...rawListings];
-
-      if (selectedCategory !== "all") {
-        filtered = filtered.filter(item => item.category && item.category.toLowerCase() === selectedCategory.toLowerCase());
-      }
-
-      const searchVal = searchInput.value.toLowerCase().trim();
-      if (searchVal) {
-        filtered = filtered.filter(item => 
-          (item.title && item.title.toLowerCase().includes(searchVal)) ||
-          (item.category && item.category.toLowerCase().includes(searchVal)) ||
-          (item.refId && item.refId.toLowerCase().includes(searchVal)) ||
-          (item.description && item.description.toLowerCase().includes(searchVal))
-        );
-      }
-
-      const sortVal = sortSelect.value;
-      if (sortVal === "price-asc") filtered.sort((a, b) => Number(a.price) - Number(b.price));
-      if (sortVal === "price-desc") filtered.sort((a, b) => Number(b.price) - Number(a.price));
-      if (sortVal === "title-asc") filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-      if (sortVal === "title-desc") filtered.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
-
-      if (filtered.length === 0) {
-        listingsGrid.innerHTML = "";
-        noResults.hidden = false;
-      } else {
-        noResults.hidden = true;
-        listingsGrid.innerHTML = filtered.map(item => `
-          <div class="card listing-card" style="background:#12121a; border:1px solid #1f1f2e; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between;">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="badge" style="background:#1a1a26; color:#00f2fe; padding:4px 8px; border-radius:4px; font-size:0.8rem;">${item.category || 'Digital'}</span>
-                <span style="color:#8a8a9e; font-size:0.85rem;">${item.refId || ''}</span>
-              </div>
-              <h3 style="color:#fff; font-size:1.2rem; margin-bottom:8px;">${item.title}</h3>
-              <p style="color:#a0a0b2; font-size:0.9rem; margin-bottom:15px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${item.description}</p>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top:1px solid #1f1f2e; padding-top:10px;">
-              <div style="font-size:1.3rem; font-weight:700; color:#00f2fe;">$${item.price}</div>
-              <a href="contact.html?ref=${item.refId || ''}" class="btn btn-primary" style="padding:6px 16px; text-decoration:none;">Inquire</a>
-            </div>
+        <div class="listing-body">
+          <span class="listing-category">${item.category || 'Digital'}</span>
+          <h3 class="listing-title">${item.title}</h3>
+          <p class="listing-desc">${item.description}</p>
+          <div class="listing-meta">
+            <span class="listing-price">${formatPrice(item.price)}</span>
+            <span class="listing-ref">${item.refId || ''}</span>
           </div>
-        `).join('');
+          <div class="listing-actions">
+            <button class="btn btn-primary btn-sm view-btn" data-id="${item.id}">View Details</button>
+            <button class="btn btn-wishlist btn-sm wishlist-btn ${inWishlist ? "active" : ""}" data-id="${item.id}" aria-label="Toggle wishlist">
+              ${inWishlist ? "♥ Saved" : "♡ Wishlist"}
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  observeReveals();
+}
+
+/* ===== SEARCH ===== */
+if (searchInput) {
+  searchInput.addEventListener("input", () => {
+    currentSearch = searchInput.value;
+    renderListings();
+  });
+}
+
+/* ===== SORT ===== */
+if (sortSelect) {
+  sortSelect.addEventListener("change", () => {
+    currentSort = sortSelect.value;
+    renderListings();
+  });
+}
+
+/* ===== GOOGLE LOGIN ===== */
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener("click", () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        console.log("Logged in user: ", result.user.email);
+        window.location.href = "contact.html";
+      })
+      .catch((error) => {
+        alert("Google Login Failed: " + error.message);
+      });
+  });
+}
+
+/* ===== NAVBAR AUTH STATE ===== */
+onAuthStateChanged(auth, (user) => {
+  if (navAuthContainer) {
+    if (user) {
+      navAuthContainer.innerHTML = `
+        <span style="color: #00f2fe; font-size: 0.85rem;">${user.email.split('@')[0]}</span>
+        <button id="navLogoutBtn" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;">Logout</button>
+      `;
+      const navLogoutBtn = document.getElementById("navLogoutBtn");
+      if (navLogoutBtn) {
+        navLogoutBtn.addEventListener("click", () => signOut(auth));
       }
+    } else {
+      navAuthContainer.innerHTML = `
+        <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+        <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+      `;
+    }
+  }
+});
+
+/* ===== WISHLIST ===== */
+function toggleWishlist(id) {
+  const index = wishlist.indexOf(id);
+  if (index > -1) {
+    wishlist.splice(index, 1);
+    showToast("Removed from wishlist", true);
+  } else {
+    wishlist.push(id);
+    showToast("Added to wishlist", true);
+  }
+  localStorage.setItem("nkWishlist", JSON.stringify(wishlist));
+  renderListings();
+}
+
+function showToast(message, isWishlist = false) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.toggle("wishlist", isWishlist);
+  toast.hidden = false;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => { toast.hidden = true; }, 300);
+  }, 2200);
+}
+
+/* ===== MODAL ===== */
+function openModal(id) {
+  const item = listings.find(l => l.id === id);
+  if (!item) return;
+
+  modalBody.innerHTML = `
+    <div class="modal-image">🛍️</div>
+    <p class="modal-category">${item.category || 'Digital'}</p>
+    <h2 class="modal-title">${item.title}</h2>
+    <p class="modal-price">${formatPrice(item.price)}</p>
+    <p class="modal-desc">${item.description}</p>
+    <p class="modal-ref">Reference: <span>${item.refId || ''}</span></p>
+    <p class="modal-desc" style="font-size:0.85rem;opacity:0.8;">
+      Contact us through the contact form referencing <strong>${item.refId || ''}</strong> to proceed.
+    </p>
+    <button class="btn btn-primary btn-full" onclick="window.location.href='contact.html?ref=${item.refId || ''}'">
+      Inquire About This Listing
+    </button>
+  `;
+
+  modalOverlay.hidden = false;
+  requestAnimationFrame(() => modalOverlay.classList.add("open"));
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  if (!modalOverlay) return;
+  modalOverlay.classList.remove("open");
+  setTimeout(() => {
+    modalOverlay.hidden = true;
+    document.body.style.overflow = "";
+  }, 300);
+}
+
+if (modalClose) modalClose.addEventListener("click", closeModal);
+if (modalOverlay) {
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalOverlay && modalOverlay.classList.contains("open")) closeModal();
+});
+
+/* ===== DELEGATED CLICKS ===== */
+if (listingsGrid) {
+  listingsGrid.addEventListener("click", (e) => {
+    const viewBtn = e.target.closest(".view-btn");
+    if (viewBtn) {
+      openModal(viewBtn.dataset.id);
+      return;
+    }
+    const wishBtn = e.target.closest(".wishlist-btn");
+    if (wishBtn) {
+      toggleWishlist(wishBtn.dataset.id);
+    }
+  });
+}
+
+/* ===== MOBILE NAV ===== */
+if (hamburger && navLinks) {
+  hamburger.addEventListener("click", () => {
+    hamburger.classList.toggle("open");
+    navLinks.classList.toggle("open");
+  });
+
+  navLinks.querySelectorAll(".nav-link").forEach(link => {
+    link.addEventListener("click", () => {
+      hamburger.classList.remove("open");
+      navLinks.classList.remove("open");
+    });
+  });
+}
+
+/* ===== NAVBAR SCROLL ===== */
+window.addEventListener("scroll", () => {
+  if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40);
+
+  const sections = document.querySelectorAll("section[id]");
+  let current = "";
+  sections.forEach(sec => {
+    if (window.scrollY >= sec.offsetTop - 100) {
+      current = sec.getAttribute("id");
+    }
+  });
+  document.querySelectorAll(".nav-link").forEach(link => {
+    const href = link.getAttribute("href");
+    if (href && href.startsWith("#")) {
+      link.classList.toggle("active", href === "#" + current);
+    }
+  });
+});
+
+/* ===== REVEAL ON SCROLL ===== */
+function observeReveals() {
+  if (!listingsGrid) return;
+  const reveals = listingsGrid.querySelectorAll(".reveal:not(.visible)");
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+  reveals.forEach(el => observer.observe(el));
+}
+
+/* ===== CONTACT FORM (If present on page) ===== */
+if (contactForm) {
+  contactForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name");
+    const email = document.getElementById("email");
+    const subject = document.getElementById("subject");
+    const message = document.getElementById("message");
+    const feedback = document.getElementById("formFeedback");
+
+    [name, email, subject, message].forEach(el => el && el.classList.remove("error"));
+    
+    if (document.getElementById("nameError")) document.getElementById("nameError").textContent = "";
+    if (document.getElementById("emailError")) document.getElementById("emailError").textContent = "";
+    if (document.getElementById("subjectError")) document.getElementById("subjectError").textContent = "";
+    if (document.getElementById("messageError")) document.getElementById("messageError").textContent = "";
+    if (feedback) feedback.hidden = true;
+
+    let valid = true;
+
+    if (name && (!name.value.trim() || name.value.trim().length < 2)) {
+      name.classList.add("error");
+      if (document.getElementById("nameError")) {
+        document.getElementById("nameError").textContent = "Please enter your full name (at least 2 characters).";
+      }
+      valid = false;
     }
 
-    searchInput.addEventListener("input", renderListings);
-    sortSelect.addEventListener("change", renderListings);
-  </script>
-</body>
-</html>
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && (!email.value.trim() || !emailRegex.test(email.value.trim()))) {
+      email.classList.add("error");
+      if (document.getElementById("emailError")) {
+        document.getElementById("emailError").textContent = "Please enter a valid email address.";
+      }
+      valid = false;
+    }
+
+    if (subject && (!subject.value.trim() || subject.value.trim().length < 3)) {
+      subject.classList.add("error");
+      if (document.getElementById("subjectError")) {
+        document.getElementById("subjectError").textContent = "Please enter a subject (at least 3 characters).";
+      }
+      valid = false;
+    }
+
+    if (message && (!message.value.trim() || message.value.trim().length < 10)) {
+      message.classList.add("error");
+      if (document.getElementById("messageError")) {
+        document.getElementById("messageError").textContent = "Please enter a message (at least 10 characters).";
+      }
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    if (feedback) {
+      feedback.className = "form-feedback info";
+      feedback.innerHTML = `
+        <strong>Message Sent Successfully!</strong><br>
+        Thank you for contacting NK ACCOUNTS. Our team will get back to you shortly.
+      `;
+      feedback.hidden = false;
+    }
+
+    contactForm.reset();
+  });
+}
+
+/* ===== INIT ===== */
+document.addEventListener("DOMContentLoaded", () => {
+  renderListings();
+  observeReveals();
+});
