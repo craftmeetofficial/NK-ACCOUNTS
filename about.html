@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — NK ACCOUNTS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <span class="logo-nk">NK</span>
+        <span class="logo-accounts">ACCOUNTS</span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="index.html#marketplace" class="nav-link">Browse Listings</a>
+        <a href="index.html#categories" class="nav-link">Categories</a>
+        <a href="index.html#how-it-works" class="nav-link">How It Works</a>
+        <a href="about.html" class="nav-link active">About Us</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- About Us Section -->
+  <main style="padding-top: 100px;">
+    <section class="about-section" id="about">
+      <div class="container">
+        <h2 class="section-title">About Us</h2>
+        <p class="section-subtitle">The team behind NK ACCOUNTS</p>
+        <div class="about-grid">
+          <div class="profile-card">
+            <div class="profile-avatar">
+              <span>KS</span>
+            </div>
+            <h3>Kaveesha Shehara</h3>
+            <p class="profile-role">Website Creator</p>
+            <p class="profile-bio">Designer and developer focused on building clean, high-performance digital experiences. Responsible for the complete vision, interface, and technical foundation of NK ACCOUNTS.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-avatar accent">
+              <span>NA</span>
+            </div>
+            <h3>Navod Akalanka</h3>
+            <p class="profile-role">Account Manager</p>
+            <p class="profile-bio">Handles client communication, listing quality, and secure delivery. Ensures every transaction is smooth, transparent, and professional from first inquiry to final handover.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <span class="logo-nk">NK</span>
+          <span class="logo-accounts">ACCOUNTS</span>
+        </a>
+        <p>Premium digital marketplace experience.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigate</h4>
+        <a href="index.html">Home</a>
+        <a href="index.html#marketplace">Browse Listings</a>
+        <a href="index.html#categories">Categories</a>
+        <a href="index.html#how-it-works">How It Works</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-team">
+        <h4>Team</h4>
+        <p>Creator: Kaveesha Shehara</p>
+        <p>Manager: Navod Akalanka</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 NK ACCOUNTS. All rights reserved. Demo listings only — no real credentials shown.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Simple Hamburger Menu for standalone page
+    const hamburger = document.getElementById("hamburger");
+    const navLinks = document.getElementById("navLinks");
+    if(hamburger && navLinks) {
+      hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("open");
+        navLinks.classList.toggle("open");
+      });
+    }
+  </script>
+</body>
+</html>
