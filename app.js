@@ -59,7 +59,7 @@ function formatPrice(price) {
   return "LKR " + Number(price).toLocaleString("en-LK");
 }
 
-/* ===== CATEGORY FILTER SETUP (Only 'ALL' Tab) ===== */
+/* ===== CATEGORY FILTER SETUP (Strictly Only 'ALL' Tab) ===== */
 function setupCategories() {
   if (!categoriesGrid) return;
   categoriesGrid.innerHTML = `
@@ -372,7 +372,7 @@ if (contactForm) {
       if (document.getElementById("subjectError")) {
         document.getElementById("subjectError").textContent = "Please enter a subject (at least 3 characters).";
       }
-      valid = false.Page = false;
+      valid = false;
     }
 
     if (message && (!message.value.trim() || message.value.trim().length < 10)) {
