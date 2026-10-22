@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — NK ACCOUNTS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Admin specific styles */
+    .admin-container {
+      max-width: 1000px;
+      margin: 120px auto 60px auto;
+      padding: 0 20px;
+    }
+    .login-box, .dashboard-box {
+      background: #12121a;
+      border: 1px solid #1f1f2e;
+      border-radius: 12px;
+      padding: 30px;
+    }
+    .message-card {
+      background: #1a1a26;
+      border: 1px solid #2a2a3d;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #8a8a9e;
+    }
+    .message-title {
+      font-weight: 600;
+      color: #fff;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    .logout-btn {
+      background: #ff4757 !important;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <span class="logo-nk">NK</span>
+        <span class="logo-accounts">ACCOUNTS</span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link">About Us</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    <!-- Login Section (Visible when logged out) -->
+    <div id="loginSection" class="login-box">
+      <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">Admin Login</h2>
+      <form id="loginForm" class="contact-form">
+        <div class="form-group">
+          <label for="adminEmail">Email Address</label>
+          <input type="email" id="adminEmail" required placeholder="admin@nkaccounts.com">
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Login to Dashboard</button>
+      </form>
+    </div>
+
+    <!-- Dashboard Section (Visible when logged in) -->
+    <div id="dashboardSection" class="dashboard-box" hidden>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 class="section-title" style="margin: 0; text-align: left;">Client Messages</h2>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </div>
+      <div id="messagesList">
+        <p style="color: #8a8a9e;">Loading messages...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Firebase Authentication & Database Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
+      authDomain: "nk-accounts.firebaseapp.com",
+      databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
+      projectId: "nk-accounts",
+      storageBucket: "nk-accounts.firebasestorage.app",
+      messagingSenderId: "647793698356",
+      appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
+      measurementId: "G-BKPP3B4LVB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    const loginSection = document.getElementById("loginSection");
+    const dashboardSection = document.getElementById("dashboardSection");
+    const loginForm = document.getElementById("loginForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const messagesList = document.getElementById("messagesList");
+
+    // 1. Handle Login
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .catch((error) => {
+          alert("Login Failed: " + error.message);
+        });
+    });
+
+    // 2. Handle Logout
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth).catch((error) => {
+        console.error("Logout error: ", error);
+      });
+    });
+
+    // 3. Track Auth State (Show/Hide Sections)
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Logged In
+        loginSection.hidden = true;
+        dashboardSection.hidden = false;
+        loadMessages();
+      } else {
+        // Logged Out
+        loginSection.hidden = false;
+        dashboardSection.hidden = true;
+      }
+    });
+
+    // 4. Load Messages from Realtime Database
+    function loadMessages() {
+      const messagesRef = ref(database, 'contacts');
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          messagesList.innerHTML = "<p style='color: #8a8a9e;'>No messages received yet.</p>";
+          return;
+        }
+
+        let html = "";
+        Object.keys(data).forEach((key) => {
+          const msg = data[key];
+          html += `
+            <div class="message-card">
+              <div class="message-header">
+                <span>From: <strong>${msg.name}</strong> (${msg.email})</span>
+                <span>${new Date(msg.timestamp).toLocaleString()}</span>
+              </div>
+              <div class="message-title">Subject: ${msg.subject}</div>
+              <p style="color: #d1d1e0; margin-top: 8px;">${msg.message}</p>
+            </div>
+          `;
+        });
+        messagesList.innerHTML = html;
+      });
+    }
+  </script>
+</body>
+</html>
