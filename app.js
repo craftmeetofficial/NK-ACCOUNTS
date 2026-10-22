@@ -1,6 +1,7 @@
 /* ===== FIREBASE SETUP & LISTINGS ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
@@ -15,6 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const auth = getAuth(app);
 
 let listings = [];
 let currentCategory = "all";
@@ -36,6 +38,8 @@ const modalClose = document.getElementById("modalClose");
 const toast = document.getElementById("toast");
 const contactForm = document.getElementById("contactForm");
 const navbar = document.getElementById("navbar");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const navAuthContainer = document.getElementById("navAuthContainer");
 
 /* ===== FETCH LISTINGS FROM FIREBASE ===== */
 const listingsRef = ref(database, 'listings');
@@ -166,6 +170,42 @@ if (sortSelect) {
     renderListings();
   });
 }
+
+/* ===== GOOGLE LOGIN ===== */
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener("click", () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        console.log("Logged in user: ", result.user.email);
+        window.location.href = "contact.html";
+      })
+      .catch((error) => {
+        alert("Google Login Failed: " + error.message);
+      });
+  });
+}
+
+/* ===== NAVBAR AUTH STATE ===== */
+onAuthStateChanged(auth, (user) => {
+  if (navAuthContainer) {
+    if (user) {
+      navAuthContainer.innerHTML = `
+        <span style="color: #00f2fe; font-size: 0.85rem;">${user.email.split('@')[0]}</span>
+        <button id="navLogoutBtn" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;">Logout</button>
+      `;
+      const navLogoutBtn = document.getElementById("navLogoutBtn");
+      if (navLogoutBtn) {
+        navLogoutBtn.addEventListener("click", () => signOut(auth));
+      }
+    } else {
+      navAuthContainer.innerHTML = `
+        <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+        <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+      `;
+    }
+  }
+});
 
 /* ===== WISHLIST ===== */
 function toggleWishlist(id) {
