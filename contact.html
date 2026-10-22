@@ -76,6 +76,30 @@
       font-size: 0.85rem;
       position: relative;
     }
+    /* WhatsApp Buttons Styling */
+    .whatsapp-section {
+      text-align: center;
+      margin: 40px auto 20px auto;
+      padding: 20px;
+      max-width: 600px;
+    }
+    .whatsapp-btn {
+      background: #25d366;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .whatsapp-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -166,6 +190,21 @@
             <button type="submit" id="submitBtn" class="btn btn-primary btn-full">Send Message</button>
             <div class="form-feedback" id="formFeedback" hidden></div>
           </form>
+        </div>
+
+        <!-- Direct WhatsApp Contact Section -->
+        <div class="whatsapp-section">
+          <p style="color: #8a8a9e; margin-bottom: 15px; font-size: 0.95rem;">Prefer instant support? Chat directly with us on WhatsApp:</p>
+          <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <!-- Navod WhatsApp Button -->
+            <a href="https://wa.me/94721979403" target="_blank" class="whatsapp-btn">
+              💬 Navod (+94 72 197 9403)
+            </a>
+            <!-- Kaveesha WhatsApp Button -->
+            <a href="https://wa.me/94714337393" target="_blank" class="whatsapp-btn">
+              💬 Kaveesha (+94 71 433 7393)
+            </a>
+          </div>
         </div>
 
       </div>
