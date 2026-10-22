@@ -71,7 +71,6 @@ function formatPrice(price) {
 function getFilteredListings() {
   let result = [...listings];
 
-  // Since category is strictly eBay now, we can filter or show all
   if (currentCategory !== "all" && currentCategory !== "eBay") {
     result = result.filter(l => l.category === currentCategory);
   }
@@ -324,7 +323,7 @@ contactForm.addEventListener("submit", (e) => {
 
   feedback.className = "form-feedback info";
   feedback.innerHTML = `
-    <strong>Form validated successfully.</strong><br>
+    <strong>Form validated successfully.` + `<br>` + `</strong>
     This is a frontend-only demo website. Messages are not sent to a server.
     Please contact the Account Manager (Navod Akalanka) directly via your preferred channel to complete your inquiry.
   `;
