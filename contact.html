@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Us — NK ACCOUNTS</title>
+  <meta name="description" content="NK ACCOUNTS — Contact Us">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +35,7 @@
   </header>
 
   <!-- Contact Section -->
-  <main style="padding-top: 100px;">
+  <main style="padding-top: 100px; min-height: 80vh;">
     <section class="contact-section" id="contact">
       <div class="container">
         <h2 class="section-title">Contact Us</h2>
@@ -100,7 +101,6 @@
   </footer>
 
   <script>
-    // Mobile menu & form validation for contact page
     const hamburger = document.getElementById("hamburger");
     const navLinks = document.getElementById("navLinks");
     if(hamburger && navLinks) {
@@ -121,10 +121,9 @@
         const feedback = document.getElementById("formFeedback");
 
         let valid = true;
-        if (!name.value.trim()) valid = false;
-        if (!email.value.trim()) valid = false;
-        if (!subject.value.trim()) valid = false;
-        if (!message.value.trim()) valid = false;
+        if (!name.value.trim() || !email.value.trim() || !subject.value.trim() || !message.value.trim()) {
+          valid = false;
+        }
 
         if (!valid) {
           alert("Please fill out all fields.");
@@ -132,7 +131,7 @@
         }
 
         feedback.className = "form-feedback info";
-        feedback.style.display = "block";
+        feedback.hidden = false;
         feedback.innerHTML = "<strong>Form submitted!</strong> Thank you for reaching out.";
         contactForm.reset();
       });
