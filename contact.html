@@ -26,6 +26,8 @@
       text-decoration: underline;
       font-size: 0.9rem;
       margin-top: 15px;
+      width: 100%;
+      text-align: center;
     }
     .user-bar {
       display: flex;
@@ -47,6 +49,32 @@
       color: #00f2fe;
       font-size: 0.85rem;
       font-weight: 500;
+    }
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.2s;
+    }
+    .google-btn:hover {
+      background: #e6e6e6;
+    }
+    .divider {
+      text-align: center;
+      color: #8a8a9e;
+      margin: 15px 0;
+      font-size: 0.85rem;
+      position: relative;
     }
   </style>
 </head>
@@ -90,6 +118,15 @@
         <!-- Auth Section (Visible when logged out) -->
         <div id="authSection" class="auth-card">
           <h3 id="authTitle" style="color: #fff; margin-bottom: 20px;">User Login</h3>
+          
+          <!-- Google Sign In Button -->
+          <button type="button" id="googleLoginBtn" class="google-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.49h4.84c-.21 1.12-.86 2.07-1.82 2.71v2.26h2.94c1.72-1.58 2.88-3.9 2.88-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.94-2.26c-.81.54-1.84.86-3.02.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.46 15.83 5.46 18 9 18z"/><path fill="#FBBC05" d="M3.97 10.71c-.18-.54-.28-1.12-.28-1.71s.1-1.17.28-1.71V4.96H.96C.35 6.18 0 7.55 0 9s.35 2.82.96 4.04l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.46 0 2.46 2.17.96 4.96l3.01 2.33c.71-2.13 2.69-3.71 5.03-3.71z"/></svg>
+            Continue with Google
+          </button>
+
+          <div class="divider">— OR —</div>
+
           <form id="authForm" class="contact-form">
             <div class="form-group">
               <label for="authUserEmail">Email Address</label>
@@ -166,3 +203,194 @@
   </footer>
 
   <!-- Firebase Integration Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut,
+      GoogleAuthProvider,
+      signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
+      authDomain: "nk-accounts.firebaseapp.com",
+      databaseURL: "https://nk-accounts-default-rtdb.firebaseio.com",
+      projectId: "nk-accounts",
+      storageBucket: "nk-accounts.firebasestorage.app",
+      messagingSenderId: "647793698356",
+      appId: "1:647793698356:web:3ee8a12ab0265f125b0c61",
+      measurementId: "G-BKPP3B4LVB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // UI Elements
+    const authSection = document.getElementById("authSection");
+    const contactFormSection = document.getElementById("contactFormSection");
+    const authForm = document.getElementById("authForm");
+    const authTitle = document.getElementById("authTitle");
+    const authSubmitBtn = document.getElementById("authSubmitBtn");
+    const toggleAuthMode = document.getElementById("toggleAuthMode");
+    const userEmailDisplay = document.getElementById("userEmailDisplay");
+    const userLogoutBtn = document.getElementById("userLogoutBtn");
+    const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const navAuthContainer = document.getElementById("navAuthContainer");
+
+    let isSignUpMode = false;
+    let currentUser = null;
+
+    // Detect mode from URL (login/signup/ref)
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+    const refParam = urlParams.get('ref');
+
+    if (mode === 'signup') {
+      isSignUpMode = true;
+      authTitle.innerText = "Create an Account";
+      authSubmitBtn.innerText = "Sign Up";
+      toggleAuthMode.innerText = "Already have an account? Login here";
+    }
+
+    if (refParam) {
+      document.getElementById("subject").value = `Inquiry about listing ${refParam}`;
+    }
+
+    // Toggle Login / Sign Up UI
+    toggleAuthMode.addEventListener("click", () => {
+      isSignUpMode = !isSignUpMode;
+      if (isSignUpMode) {
+        authTitle.innerText = "Create an Account";
+        authSubmitBtn.innerText = "Sign Up";
+        toggleAuthMode.innerText = "Already have an account? Login here";
+      } else {
+        authTitle.innerText = "User Login";
+        authSubmitBtn.innerText = "Login";
+        toggleAuthMode.innerText = "Need an account? Sign Up here";
+      }
+    });
+
+    // Google Sign-In
+    googleLoginBtn.addEventListener("click", () => {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .catch(err => alert("Google Login Failed: " + err.message));
+    });
+
+    // Handle Authentication (Email/Password Login & Sign Up)
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("authUserEmail").value.trim();
+      const password = document.getElementById("authUserPassword").value;
+
+      if (isSignUpMode) {
+        createUserWithEmailAndPassword(auth, email, password)
+          .then(() => alert("Account created successfully! You can now send messages."))
+          .catch(err => alert("Sign Up Failed: " + err.message));
+      } else {
+        signInWithEmailAndPassword(auth, email, password)
+          .catch(err => alert("Login Failed: " + err.message));
+      }
+    });
+
+    // Track User Auth State
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        authSection.hidden = true;
+        contactFormSection.hidden = false;
+        userEmailDisplay.innerText = user.email;
+
+        // Update Navbar Auth Status
+        navAuthContainer.innerHTML = `
+          <span class="user-status">${user.email.split('@')[0]}</span>
+          <button id="navLogoutBtn" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;">Logout</button>
+        `;
+        document.getElementById("navLogoutBtn").addEventListener("click", () => signOut(auth));
+      } else {
+        currentUser = null;
+        authSection.hidden = false;
+        contactFormSection.hidden = true;
+
+        navAuthContainer.innerHTML = `
+          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+        `;
+      }
+    });
+
+    // Handle Logout
+    userLogoutBtn.addEventListener("click", () => {
+      signOut(auth);
+    });
+
+    // Navigation Menu Toggle
+    const hamburger = document.getElementById("hamburger");
+    const navLinks = document.getElementById("navLinks");
+    if (hamburger && navLinks) {
+      hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("open");
+        navLinks.classList.toggle("open");
+      });
+    }
+
+    // Contact Form Submission
+    const contactForm = document.getElementById("contactForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const feedback = document.getElementById("formFeedback");
+
+    if (contactForm) {
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if (!currentUser) {
+          alert("Please login first to send a message.");
+          return;
+        }
+
+        const name = document.getElementById("name").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const message = document.getElementById("message").value.trim();
+
+        if (!name || !subject || !message) {
+          alert("Please fill out all fields.");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending...";
+
+        const messagesRef = ref(database, 'contacts');
+        push(messagesRef, {
+          userId: currentUser.uid,
+          email: currentUser.email,
+          name: name,
+          subject: subject,
+          message: message,
+          timestamp: new Date().toISOString()
+        })
+        .then(() => {
+          feedback.className = "form-feedback info";
+          feedback.hidden = false;
+          feedback.innerHTML = "<strong>Message Sent!</strong> Thank you for reaching out.";
+          contactForm.reset();
+        })
+        .catch((error) => {
+          console.error("Error saving message: ", error);
+          alert("Failed to send message: " + error.message);
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Send Message";
+        });
+      });
+    }
+  </script>
+</body>
+</html>
