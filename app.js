@@ -1,129 +1,49 @@
-/* ===== DEMO LISTINGS DATA ===== */
+/* ===== DEMO LISTINGS DATA (eBay Only) ===== */
 const listings = [
   {
     id: 1,
-    title: "Premium Gaming Account Bundle",
-    category: "Gaming",
-    price: 4500,
-    description: "High-level multi-platform gaming account with rare skins and exclusive content. Ideal for competitive players seeking a head start.",
-    ref: "NK-0001",
+    title: "eBay Verified Seller Account",
+    category: "eBay",
+    price: 15000,
+    description: "High-feedback established eBay seller account with active selling history and instant payment setup.",
+    ref: "EB-0001",
     featured: true,
-    icon: "🎮"
+    icon: "🛍️"
   },
   {
     id: 2,
-    title: "Streaming Platform Pro Access",
-    category: "Streaming",
-    price: 2200,
-    description: "Full-featured streaming service account with ad-free viewing, offline downloads, and multi-device support.",
-    ref: "NK-0002",
+    title: "eBay Dropshipping Pro Store",
+    category: "eBay",
+    price: 22000,
+    description: "Fully optimized eBay store geared for dropshipping with high-demand product listings and supplier templates.",
+    ref: "EB-0002",
     featured: true,
-    icon: "📺"
+    icon: "📦"
   },
   {
     id: 3,
-    title: "Creative Suite Professional",
-    category: "Software",
-    price: 8900,
-    description: "Industry-standard design and editing software suite. Includes cloud storage and regular feature updates.",
-    ref: "NK-0003",
+    title: "eBay US Marketplace Account",
+    category: "eBay",
+    price: 18500,
+    description: "Registered US region eBay account with high limits, ready for scaling cross-border e-commerce business.",
+    ref: "EB-0003",
     featured: false,
-    icon: "🎨"
+    icon: "🇺🇸"
   },
   {
     id: 4,
-    title: "Social Growth Starter Pack",
-    category: "Social",
-    price: 1800,
-    description: "Established social media profile with organic engagement history. Perfect for creators building their brand.",
-    ref: "NK-0004",
-    featured: true,
-    icon: "📱"
-  },
-  {
-    id: 5,
-    title: "Productivity Workspace Pro",
-    category: "Productivity",
-    price: 3200,
-    description: "Collaborative workspace tool with advanced project management, integrations, and team features.",
-    ref: "NK-0005",
+    title: "eBay Bulk Listing Manager Suite",
+    category: "eBay",
+    price: 9500,
+    description: "Automated toolkit and software access for managing inventory, tracking orders, and optimizing eBay listings.",
+    ref: "EB-0004",
     featured: false,
-    icon: "⚡"
-  },
-  {
-    id: 6,
-    title: "AAA Game Library Access",
-    category: "Gaming",
-    price: 6700,
-    description: "Extensive library of popular titles with cloud saves and cross-platform play. Regular new releases added.",
-    ref: "NK-0006",
-    featured: true,
-    icon: "🕹️"
-  },
-  {
-    id: 7,
-    title: "Music Streaming Unlimited",
-    category: "Streaming",
-    price: 1500,
-    description: "Unlimited music streaming with high-fidelity audio, offline mode, and curated playlists.",
-    ref: "NK-0007",
-    featured: false,
-    icon: "🎵"
-  },
-  {
-    id: 8,
-    title: "Developer Tools Suite",
-    category: "Software",
-    price: 5400,
-    description: "Complete development environment with IDE, version control, and deployment tools for modern workflows.",
-    ref: "NK-0008",
-    featured: false,
-    icon: "💻"
-  },
-  {
-    id: 9,
-    title: "Influencer Ready Profile",
-    category: "Social",
-    price: 4100,
-    description: "Verified-style social account with consistent posting history and engaged audience niche.",
-    ref: "NK-0009",
-    featured: true,
-    icon: "⭐"
-  },
-  {
-    id: 10,
-    title: "Cloud Storage Enterprise",
-    category: "Productivity",
-    price: 2800,
-    description: "Large-capacity secure cloud storage with file sharing, version history, and advanced security options.",
-    ref: "NK-0010",
-    featured: false,
-    icon: "☁️"
-  },
-  {
-    id: 11,
-    title: "Esports Ranked Account",
-    category: "Gaming",
-    price: 7500,
-    description: "Competitive ranked profile with strong statistics and exclusive seasonal rewards unlocked.",
-    ref: "NK-0011",
-    featured: true,
-    icon: "🏆"
-  },
-  {
-    id: 12,
-    title: "Video Production Toolkit",
-    category: "Software",
-    price: 6200,
-    description: "Professional video editing and effects package used by content creators and studios worldwide.",
-    ref: "NK-0012",
-    featured: false,
-    icon: "🎬"
+    icon: "⚙️"
   }
 ];
 
 /* ===== STATE ===== */
-let currentCategory = "all";
+let currentCategory = "eBay";
 let currentSearch = "";
 let currentSort = "default";
 let wishlist = JSON.parse(localStorage.getItem("nkWishlist") || "[]");
@@ -151,7 +71,8 @@ function formatPrice(price) {
 function getFilteredListings() {
   let result = [...listings];
 
-  if (currentCategory !== "all") {
+  // Since category is strictly eBay now, we can filter or show all
+  if (currentCategory !== "all" && currentCategory !== "eBay") {
     result = result.filter(l => l.category === currentCategory);
   }
 
@@ -220,7 +141,6 @@ function renderListings() {
     `;
   }).join("");
 
-  // Re-observe new cards for reveal
   observeReveals();
 }
 
@@ -344,7 +264,6 @@ navLinks.querySelectorAll(".nav-link").forEach(link => {
 window.addEventListener("scroll", () => {
   navbar.classList.toggle("scrolled", window.scrollY > 40);
 
-  // Active nav link
   const sections = document.querySelectorAll("section[id]");
   let current = "";
   sections.forEach(sec => {
@@ -367,7 +286,6 @@ contactForm.addEventListener("submit", (e) => {
   const message = document.getElementById("message");
   const feedback = document.getElementById("formFeedback");
 
-  // Reset errors
   [name, email, subject, message].forEach(el => el.classList.remove("error"));
   document.getElementById("nameError").textContent = "";
   document.getElementById("emailError").textContent = "";
@@ -404,7 +322,6 @@ contactForm.addEventListener("submit", (e) => {
 
   if (!valid) return;
 
-  // Honest frontend-only feedback (no backend)
   feedback.className = "form-feedback info";
   feedback.innerHTML = `
     <strong>Form validated successfully.</strong><br>
@@ -418,7 +335,7 @@ contactForm.addEventListener("submit", (e) => {
 
 /* ===== REVEAL ON SCROLL ===== */
 function observeReveals() {
-  const reveals = document.querySelectorAll(".reveal:not(.visible)");
+  const reveals = document.getElementById("listingsGrid").querySelectorAll(".reveal:not(.visible)");
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -434,10 +351,5 @@ function observeReveals() {
 /* ===== INIT ===== */
 document.addEventListener("DOMContentLoaded", () => {
   renderListings();
-
-  // Add reveal class to static sections
-  document.querySelectorAll(".step-card, .profile-card").forEach(el => {
-    el.classList.add("reveal");
-  });
   observeReveals();
 });
