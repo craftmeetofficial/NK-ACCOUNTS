@@ -1,4 +1,235 @@
-<!-- Firebase Script with Instant Local Caching -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NK ACCOUNTS — Premium Digital Marketplace</title>
+  <meta name="description" content="NK ACCOUNTS — Discover digital marketplace listings through a clean, modern, and premium browsing experience.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .nav-auth-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 15px;
+    }
+    .user-status {
+      color: #00f2fe;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    /* Modal Custom Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal {
+      background: #12121a;
+      border: 1px solid #1f1f2e;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: #8a8a9e;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-close:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html#home" class="logo">
+        <span class="logo-nk">NK</span>
+        <span class="logo-accounts">ACCOUNTS</span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#marketplace" class="nav-link">Browse Listings</a>
+        <a href="#categories" class="nav-link">Categories</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="about.html" class="nav-link">About Us</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        
+        <!-- Dynamic Auth Buttons -->
+        <div class="nav-auth-container" id="navAuthContainer">
+          <a href="contact.html?mode=login" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Login</a>
+          <a href="contact.html?mode=signup" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">Sign Up</a>
+        </div>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <p class="hero-brand">NK ACCOUNTS</p>
+      <h1 class="hero-title">YOUR NEXT ACCOUNT.<br>YOUR NEXT LEVEL.</h1>
+      <p class="hero-desc">Discover digital marketplace listings through a clean, modern, and premium browsing experience.</p>
+      <div class="hero-buttons">
+        <a href="#marketplace" class="btn btn-primary">BROWSE LISTINGS</a>
+        <a href="about.html" class="btn btn-outline">ABOUT US</a>
+      </div>
+      <div class="hero-team">
+        <div class="team-item">
+          <span class="team-role">Website Creator</span>
+          <span class="team-name">Kaveesha Shehara</span>
+        </div>
+        <div class="team-divider"></div>
+        <div class="team-item">
+          <span class="team-role">Account Manager</span>
+          <span class="team-name">Navod Akalanka</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search & Filter -->
+  <section class="search-section" id="search">
+    <div class="container">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search listings by title, category or reference..." aria-label="Search listings">
+        <select id="sortSelect" aria-label="Sort listings">
+          <option value="default">Sort by: Default</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="title-asc">Title: A–Z</option>
+          <option value="title-desc">Title: Z–A</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories-section" id="categories">
+    <div class="container">
+      <h2 class="section-title">Product Categories</h2>
+      <p class="section-subtitle">Filter by the type of digital product you need</p>
+      <div class="categories-grid" id="categoriesGrid">
+        <button class="category-btn active" data-category="all">ALL</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace / Featured Listings -->
+  <section class="marketplace-section" id="marketplace">
+    <div class="container">
+      <h2 class="section-title">Browse Marketplace Listings</h2>
+      <p class="section-subtitle">Premium digital accounts & services</p>
+      <div class="listings-grid" id="listingsGrid">
+        <p style="color: #8a8a9e; grid-column: 1/-1; text-align: center;">Loading listings...</p>
+      </div>
+      <p class="no-results" id="noResults" hidden>No listings match your search or filters.</p>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-section" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Simple, secure, and straightforward</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <h3>Browse Listings</h3>
+          <p>Explore our curated marketplace of digital products. Use search and category filters to find exactly what you need.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <h3>Select & Wishlist</h3>
+          <p>Save interesting listings to your wishlist. View full details in a clean modal before deciding.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <h3>Contact & Purchase</h3>
+          <p>Reach out through the contact form. Our Account Manager will guide you through a secure transaction.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">04</div>
+          <h3>Receive Access</h3>
+          <p>Once confirmed, you receive delivery details. All demo listings here contain no real credentials.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <a href="#home" class="logo">
+          <span class="logo-nk">NK</span>
+          <span class="logo-accounts">ACCOUNTS</span>
+        </a>
+        <p>Premium digital marketplace experience.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigate</h4>
+        <a href="#home">Home</a>
+        <a href="#marketplace">Browse Listings</a>
+        <a href="#categories">Categories</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-team">
+        <h4>Team</h4>
+        <p>Creator: Kaveesha Shehara</p>
+        <p>Manager: Navod Akalanka</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 NK ACCOUNTS. All rights reserved. Safe, Secure & Reliable Digital Marketplace.</p>
+    </div>
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -34,6 +265,17 @@
     const modalBody = document.getElementById("modalBody");
     const modalClose = document.getElementById("modalClose");
 
+    // Check cached listings for instant rendering
+    const cachedData = localStorage.getItem("nk_cached_listings");
+    if (cachedData) {
+      try {
+        rawListings = JSON.parse(cachedData);
+        renderListings();
+      } catch (e) {
+        console.log("Cache reading error", e);
+      }
+    }
+
     // Dynamic Auth State Check for Navbar
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -58,19 +300,7 @@
       });
     }
 
-    // 1. කලින් සේව් වුණු ඩේටා තියෙනවා නම් එක පාරටම පෙන්වීම (Instant Load)
-    const cachedData = localStorage.getItem("nk_cached_listings");
-    if (cachedData) {
-      try {
-        rawListings = JSON.parse(cachedData);
-        setupCategories();
-        renderListings();
-      } catch (e) {
-        console.log("Cache error", e);
-      }
-    }
-
-    // 2. Firebase එකෙන් අලුත්ම ඩේටා ගෙනැවිත් Update කිරීම
+    // Fetch listings from Firebase
     const listingsRef = ref(database, 'listings');
     onValue(listingsRef, (snapshot) => {
       const data = snapshot.val();
@@ -79,10 +309,7 @@
       } else {
         rawListings = Object.keys(data).map(key => ({ id: key, ...data[key] }));
       }
-      
-      // ඊළඟ පාර වේගයෙන් ලෝඩ් වෙන්න Cache එකට දාලා තබාගැනීම
       localStorage.setItem("nk_cached_listings", JSON.stringify(rawListings));
-      
       setupCategories();
       renderListings();
     });
@@ -96,13 +323,14 @@
 
     // Render & Filter Listings
     function renderListings() {
+      if (!listingsGrid) return;
       let filtered = [...rawListings];
 
       if (selectedCategory !== "all") {
         filtered = filtered.filter(item => item.category && item.category.toLowerCase() === selectedCategory.toLowerCase());
       }
 
-      const searchVal = searchInput.value.toLowerCase().trim();
+      const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
       if (searchVal) {
         filtered = filtered.filter(item => 
           (item.title && item.title.toLowerCase().includes(searchVal)) ||
@@ -112,7 +340,7 @@
         );
       }
 
-      const sortVal = sortSelect.value;
+      const sortVal = sortSelect ? sortSelect.value : "default";
       if (sortVal === "price-asc") filtered.sort((a, b) => Number(a.price) - Number(b.price));
       if (sortVal === "price-desc") filtered.sort((a, b) => Number(b.price) - Number(a.price));
       if (sortVal === "title-asc") filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
@@ -120,9 +348,9 @@
 
       if (filtered.length === 0) {
         listingsGrid.innerHTML = "";
-        noResults.hidden = false;
+        if (noResults) noResults.hidden = false;
       } else {
-        noResults.hidden = true;
+        if (noResults) noResults.hidden = true;
         listingsGrid.innerHTML = filtered.map(item => `
           <div class="card listing-card" style="background:#12121a; border:1px solid #1f1f2e; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between;">
             <div>
@@ -179,7 +407,6 @@
       });
     }
 
-    // Click event for View Details buttons
     if (listingsGrid) {
       listingsGrid.addEventListener("click", (e) => {
         const btn = e.target.closest(".view-details-btn");
@@ -189,6 +416,8 @@
       });
     }
 
-    searchInput.addEventListener("input", renderListings);
-    sortSelect.addEventListener("change", renderListings);
+    if (searchInput) searchInput.addEventListener("input", renderListings);
+    if (sortSelect) sortSelect.addEventListener("change", renderListings);
   </script>
+</body>
+</html>
