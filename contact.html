@@ -9,6 +9,35 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .auth-card {
+      background: #12121a;
+      border: 1px solid #1f1f2e;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      margin: 0 auto 30px auto;
+    }
+    .auth-toggle-btn {
+      background: none;
+      border: none;
+      color: #00f2fe;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 0.9rem;
+      margin-top: 15px;
+    }
+    .user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a26;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      border: 1px solid #2a2a3d;
+    }
+  </style>
 </head>
 <body>
   <!-- Navigation -->
@@ -34,38 +63,57 @@
     </div>
   </header>
 
-  <!-- Contact Section -->
+  <!-- Main Section -->
   <main style="padding-top: 100px; min-height: 80vh;">
     <section class="contact-section" id="contact">
       <div class="container">
         <h2 class="section-title">Contact Us</h2>
-        <p class="section-subtitle">Have a question or ready to purchase? Send a message.</p>
-        <form class="contact-form" id="contactForm" novalidate>
-          <div class="form-row">
+        <p class="section-subtitle">Please login to your account to send a message.</p>
+
+        <!-- Auth Section (Visible when logged out) -->
+        <div id="authSection" class="auth-card">
+          <h3 id="authTitle" style="color: #fff; margin-bottom: 20px;">User Login</h3>
+          <form id="authForm" class="contact-form">
             <div class="form-group">
-              <label for="name">Full Name</label>
-              <input type="text" id="name" name="name" required placeholder="Your name" autocomplete="name">
-              <span class="error-msg" id="nameError"></span>
+              <label for="authUserEmail">Email Address</label>
+              <input type="email" id="authUserEmail" required placeholder="you@example.com">
             </div>
             <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
-              <span class="error-msg" id="emailError"></span>
+              <label for="authUserPassword">Password</label>
+              <input type="password" id="authUserPassword" required placeholder="••••••••">
             </div>
+            <button type="submit" id="authSubmitBtn" class="btn btn-primary btn-full">Login</button>
+          </form>
+          <button type="button" id="toggleAuthMode" class="auth-toggle-btn">Need an account? Sign Up here</button>
+        </div>
+
+        <!-- Contact Form Section (Visible when logged in) -->
+        <div id="contactFormSection" hidden>
+          <div class="user-bar">
+            <span style="color: #d1d1e0;">Logged in as: <strong id="userEmailDisplay" style="color: #00f2fe;"></strong></span>
+            <button id="userLogoutBtn" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.85rem;">Logout</button>
           </div>
-          <div class="form-group">
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" required placeholder="e.g. Inquiry about listing NK-0042">
-            <span class="error-msg" id="subjectError"></span>
-          </div>
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="5" required placeholder="Tell us what you need..."></textarea>
-            <span class="error-msg" id="messageError"></span>
-          </div>
-          <button type="submit" id="submitBtn" class="btn btn-primary btn-full">Send Message</button>
-          <div class="form-feedback" id="formFeedback" hidden></div>
-        </form>
+
+          <form class="contact-form" id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="Your name" autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required placeholder="e.g. Inquiry about listing NK-0042">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" required placeholder="Tell us what you need..."></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-full">Send Message</button>
+            <div class="form-feedback" id="formFeedback" hidden></div>
+          </form>
+        </div>
+
       </div>
     </section>
   </main>
@@ -103,9 +151,9 @@
   <!-- Firebase Integration Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBXycN3dBMmSO2n3Dc2vQDmK_mOO3XJ22M",
       authDomain: "nk-accounts.firebaseapp.com",
@@ -117,9 +165,71 @@
       measurementId: "G-BKPP3B4LVB"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const database = getDatabase(app);
+
+    // UI Elements
+    const authSection = document.getElementById("authSection");
+    const contactFormSection = document.getElementById("contactFormSection");
+    const authForm = document.getElementById("authForm");
+    const authTitle = document.getElementById("authTitle");
+    const authSubmitBtn = document.getElementById("authSubmitBtn");
+    const toggleAuthMode = document.getElementById("toggleAuthMode");
+    const userEmailDisplay = document.getElementById("userEmailDisplay");
+    const userLogoutBtn = document.getElementById("userLogoutBtn");
+
+    let isSignUpMode = false;
+    let currentUser = null;
+
+    // Toggle Login / Sign Up UI
+    toggleAuthMode.addEventListener("click", () => {
+      isSignUpMode = !isSignUpMode;
+      if (isSignUpMode) {
+        authTitle.innerText = "Create an Account";
+        authSubmitBtn.innerText = "Sign Up";
+        toggleAuthMode.innerText = "Already have an account? Login here";
+      } else {
+        authTitle.innerText = "User Login";
+        authSubmitBtn.innerText = "Login";
+        toggleAuthMode.innerText = "Need an account? Sign Up here";
+      }
+    });
+
+    // Handle Authentication (Login / Sign Up)
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("authUserEmail").value.trim();
+      const password = document.getElementById("authUserPassword").value;
+
+      if (isSignUpMode) {
+        createUserWithEmailAndPassword(auth, email, password)
+          .then(() => alert("Account created successfully! You can now send messages."))
+          .catch(err => alert("Sign Up Failed: " + err.message));
+      } else {
+        signInWithEmailAndPassword(auth, email, password)
+          .catch(err => alert("Login Failed: " + err.message));
+      }
+    });
+
+    // Track User Auth State
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        authSection.hidden = true;
+        contactFormSection.hidden = false;
+        userEmailDisplay.innerText = user.email;
+      } else {
+        currentUser = null;
+        authSection.hidden = false;
+        contactFormSection.hidden = true;
+      }
+    });
+
+    // Handle Logout
+    userLogoutBtn.addEventListener("click", () => {
+      signOut(auth);
+    });
 
     // Navigation Menu Toggle
     const hamburger = document.getElementById("hamburger");
@@ -131,7 +241,7 @@
       });
     }
 
-    // Contact Form Submission
+    // Contact Form Submission (Only when logged in)
     const contactForm = document.getElementById("contactForm");
     const submitBtn = document.getElementById("submitBtn");
     const feedback = document.getElementById("formFeedback");
@@ -140,25 +250,28 @@
       contactForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
+        if (!currentUser) {
+          alert("Please login first to send a message.");
+          return;
+        }
+
         const name = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
         const subject = document.getElementById("subject").value.trim();
         const message = document.getElementById("message").value.trim();
 
-        if (!name || !email || !subject || !message) {
+        if (!name || !subject || !message) {
           alert("Please fill out all fields.");
           return;
         }
 
-        // Disable button during submit
         submitBtn.disabled = true;
         submitBtn.innerText = "Sending...";
 
-        // Push data to Firebase Realtime Database
         const messagesRef = ref(database, 'contacts');
         push(messagesRef, {
+          userId: currentUser.uid,
+          email: currentUser.email,
           name: name,
-          email: email,
           subject: subject,
           message: message,
           timestamp: new Date().toISOString()
@@ -171,7 +284,7 @@
         })
         .catch((error) => {
           console.error("Error saving message: ", error);
-          alert("Failed to send message. Please try again.");
+          alert("Failed to send message: " + error.message);
         })
         .finally(() => {
           submitBtn.disabled = false;
